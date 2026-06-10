@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .loginPage {
+      min-height: 100vh;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-image: url('casino1.jpg');
+    }
+
+    .pageOverlay {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background:
+        radial-gradient(circle at top, rgba(252, 194, 61, 0.16), transparent 35%),
+        linear-gradient(135deg, rgba(15, 23, 28, 0.52), rgba(77, 90, 96, 0.34));
+    }
+
+    .loginCardWrapper {
+      width: 100%;
+      max-width: 450px; 
+    }
+
+    .text-center { text-align: center; }
+    .mb-8 { margin-bottom: 2rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-3 { margin-bottom: 0.75rem; }
+    .mt-3 { margin-top: 0.75rem; }
+    .pa-6 { padding: 1.5rem; }
+    .pa-4 { padding: 1rem; }
+
+    .loginCard {
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .logoShell {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+    }
+
+    .logoShell img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .brandWrap {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .brandPrefix {
+      color: #fcc23d;
+      font-size: clamp(2rem, 1.6rem + 1.4vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      -webkit-text-stroke: 0.8px #4d5a60;
+    }
+
+    .brandName {
+      color: white;
+      font-size: clamp(2.8rem, 2rem + 1.8vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      text-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+    }
+
+    .brandSubtitle {
+      font-size: clamp(1rem, 0.9rem + 0.35vw, 1.2rem);
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .formPanel {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 1.25rem;
+    }
+
+    .formTitle {
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    .customInput {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background-color: #f5f5f5;
+      font-size: 1rem;
+      color: #333;
+      transition: all 0.2s ease;
+    }
+
+    .customInput:focus {
+      outline: none;
+      border-color: transparent;
+      box-shadow: 0 0 0 2px #4d5a60;
+    }
+
+    .loginBtn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #4d5a60, #334047);
+      color: white;
+      border: none;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: 0.02em;
+      box-shadow: 0 10px 24px rgba(51, 64, 71, 0.28);
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .forgotPasswordLink {
+      font-size: 0.85rem;
+      color: #4d5a60;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .forgotPasswordLink:hover {
+      color:#fcc23d;
+      text-decoration: underline;
+    }
+
+    .loginBtn:active {
+      transform: scale(0.98);
+    }
+
+    .loginBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @media (max-width: 600px) {
+      .pa-6 { padding: 1.5rem; }
+      .brandSubtitle { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loginPage">
+    <div class="pageOverlay">
+      <div class="loginCardWrapper">
+        <div class="loginCard">
+          <div class="pa-6">
+            
+            <div class="text-center mb-8">
+              <div class="logoShell mb-4">
+                <img src="spade.webp" alt="Casino Logo" />
+              </div>
+
+              <div class="brandWrap">
+                <div class="brandPrefix"></div>
+                <div class="brandName">Casino</div>
+              </div>
+
+              <div class="brandSubtitle mt-3">
+                Gamble your life away
+              </div>
+            </div>
+
+            <form id="loginForm">
+              <div class="formPanel">
+                <div class="formTitle mb-3">
+                  Sign in
+                </div>
+
+                <input type="text" id="username" class="customInput mb-3" placeholder="Username" required>
+                <input type="password" id="password" class="customInput mb-3" placeholder="Password"required>
+                <div class="text-right mb-4">
+                  <a href="#" class="forgotPasswordLink">Passwort vergessen</a>
+                </div>
+                <button type="submit" id="loginBtn" class="loginBtn" disabled>
+                  Login
+                </button>
+
+                <a href="#" class="forgotPasswordLink mt-3 block text-center">
+                  Noch keinen Account? Jetzt registrieren
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+  </script>
+</body>
+</html>
