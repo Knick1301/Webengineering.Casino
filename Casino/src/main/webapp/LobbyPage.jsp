@@ -34,7 +34,7 @@
         <h2>Dein Guthaben: <strong style="color: #4CAF50;"><%= user.getBalance() %> Chips</strong></h2>
 
         <a href="BlackjackPage.jsp" class="game-link">🃏 Blackjack</a>
-        <a href="SlotPage.jsp" class="game-link">🎰 Slotmaschine</a>
+        <a href="SlotPage.jsp" class="game-link">🎰 Slotmachine</a>
 
         <div class="action-container">
             <% if ("admin".equals(user.getUsername())) { %>
