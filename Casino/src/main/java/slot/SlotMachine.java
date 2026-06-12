@@ -60,7 +60,7 @@ public class SlotMachine {
                 resultMessage = "Super Gewinn! 4 Gleiche!";
             }
         } else if (maxMatches == 3) {
-            payout = betAmount * 2;
+            payout = betAmount * 5;
             resultMessage = "Toll! 3 Gleiche!";
         } else if (maxMatches == 2) {
             payout = betAmount;
