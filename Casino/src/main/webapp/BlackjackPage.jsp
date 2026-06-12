@@ -5,7 +5,8 @@
 <%@ page import="java.util.List" %>
 
 <% 
-    if (session.getAttribute("currentUser") == null) { 
+    User user = (User) session.getAttribute("currentUser");
+    if (user == null) { 
         response.sendRedirect("LoginPage.html"); 
         return; 
     } 
@@ -40,11 +41,12 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8" />
-    <title>Casino - Lobby</title>
+    <title>Casino - Blackjack</title>
     <style>
         body { background: #0f171c; color: white; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: rgba(255, 255, 255, 0.1); padding: 2rem; border-radius: 24px; backdrop-filter: blur(10px); border: 1px solid rgba(252, 194, 61, 0.3); text-align: center; width: 90%; max-width: 600px; margin-top: 2rem; }
-        h1 { color: #fcc23d; font-size: 2.5rem; margin-bottom: 0.5rem; }
+        h1 { color: #fcc23d; font-size: 2.5rem; margin-bottom: 0.2rem; }
+        h2 { color: #fff; font-size: 1.5rem; margin-top: 0; font-weight: 300; }
         .game-box { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; margin: 20px 0; border: 1px solid #4d5a60; }
         .hand { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
         
@@ -70,12 +72,13 @@
         .logout-btn:hover { background: #fcc23d; color: #0f171c; }
         .action-btn { padding: 8px 16px; cursor: pointer; margin: 5px; border-radius: 6px; border: none; font-weight: bold; }
         .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .bet-input { padding: 10px; border-radius: 6px; border: 1px solid #fcc23d; background: #0f171c; color: #fcc23d; font-weight: bold; font-size: 1.1rem; width: 100px; text-align: center; margin-right: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Willkommen, ${currentUser.username}!</h1>
-        <p>Dein Einsatz ist bereit. Viel Glück!</p>
+        <h1>Willkommen, <%= user.getUsername() %>!</h1>
+        <h2>Guthaben: <strong style="color: #4CAF50;"><%= user.getBalance() %> Chips</strong></h2>
 
         <div class="game-box">
             <% if (game != null) { %>
@@ -175,29 +178,40 @@
                     <% if (!game.isGameOver()) { 
                         List<Card> currentActiveHand = game.getPlayerHands().get(game.getCurrentHandIndex());
                     %>
+                        <p style="color: #ccc; margin-bottom: 10px;">Aktueller Einsatz: <%= game.getCurrentBet() %> Chips</p>
                         <button type="submit" class="action-btn" name="action" value="hit">Karte ziehen</button>
                         <button type="submit" class="action-btn" name="action" value="stand">Halten</button>
                         
-                        <% if (currentActiveHand.size() == 2) { %>
+                        <% if (currentActiveHand.size() == 2 && user.getBalance() >= game.getCurrentBet()) { %>
                             <button type="submit" class="action-btn" name="action" value="double">Verdoppeln</button>
                         <% } %>
 
-                        <% if (game.canSplit()) { %>
+                        <% if (game.canSplit() && user.getBalance() >= game.getCurrentBet()) { %>
                             <button type="submit" class="action-btn" name="action" value="split">Split</button>
                         <% } %>
                     <% } else { %>
-                        <button type="submit" class="action-btn" name="action" value="reset" style="background: #fcc23d; color: #0f171c;">Neues Spiel</button>
+                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px;">
+                            <input type="number" name="betAmount" class="bet-input" min="1" max="<%= user.getBalance() %>" value="<%= game.getCurrentBet() %>" required>
+                            <button type="submit" class="action-btn" name="action" value="start" style="background: #fcc23d; color: #0f171c;">Neues Spiel</button>
+                        </div>
                     <% } %>
                 </form>
                 
             <% } else { %>
-                <form action="BlackjackServlet" method="POST">
-                    <button type="submit" class="action-btn" name="action" value="reset" style="background: #fcc23d; color: #0f171c;">Blackjack starten</button>
+                <form action="BlackjackServlet" method="POST" style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+                    <label style="margin-bottom: 10px; font-weight: bold;">Dein Einsatz:</label>
+                    <div style="display: flex;">
+                        <input type="number" name="betAmount" class="bet-input" min="1" max="<%= user.getBalance() %>" value="50" required>
+                        <button type="submit" class="action-btn" name="action" value="start" style="background: #fcc23d; color: #0f171c;">Blackjack starten</button>
+                    </div>
                 </form>
             <% } %>
         </div>
 
-        <a href="LogoutServlet" class="logout-btn">Abmelden</a>
+        <div style="margin-top: 1rem; display: flex; gap: 10px; justify-content: center;">
+            <a href="LobbyPage.jsp" class="logout-btn" style="margin-top: 0;">Zurück zur Lobby</a>
+            <a href="LogoutServlet" class="logout-btn" style="margin-top: 0;">Abmelden</a>
+        </div>
     </div>
 </body>
 </html>

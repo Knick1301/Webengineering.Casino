@@ -48,7 +48,7 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("currentUser", loggedInUser);
 
 
-            response.sendRedirect("CasinoPage.jsp");
+            response.sendRedirect("LobbyPage.jsp");
         } else {
 
             response.sendRedirect("LoginPage.html?error=true");

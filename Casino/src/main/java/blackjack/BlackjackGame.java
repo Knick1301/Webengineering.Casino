@@ -9,13 +9,18 @@ public class BlackjackGame {
     private List<Card> dealerHand;
     private boolean isGameOver;
     private int currentHandIndex;
+    private List<Integer> handBets;
 
-    public BlackjackGame() {
+    public BlackjackGame(int betAmount) {
         deck = new Deck();
         playerHands = new ArrayList<>();
         dealerHand = new ArrayList<>();
+        handBets = new ArrayList<>();
         isGameOver = false;
         currentHandIndex = 0;
+
+        handBets.add(betAmount);
+
         List<Card> initialHand = new ArrayList<>();
         initialHand.add(deck.draw());
         initialHand.add(deck.draw());
@@ -57,6 +62,8 @@ public class BlackjackGame {
             List<Card> currentHand = playerHands.get(currentHandIndex);
             if (currentHand.size() == 2) {
                 currentHand.add(deck.draw());
+                int currentHandBet = handBets.get(currentHandIndex);
+                handBets.set(currentHandIndex, currentHandBet * 2);
                 nextHandOrDealer();
             }
         }
@@ -86,6 +93,8 @@ public class BlackjackGame {
             playerHands.clear();
             playerHands.add(hand1);
             playerHands.add(hand2);
+
+            handBets.add(handBets.get(0));
             currentHandIndex = 0;
         }
     }
@@ -124,10 +133,16 @@ public class BlackjackGame {
         return results;
     }
 
-
-
     public List<List<Card>> getPlayerHands() { return playerHands; }
     public int getCurrentHandIndex() { return currentHandIndex; }
     public List<Card> getDealerHand() { return dealerHand; }
     public boolean isGameOver() { return isGameOver; }
+    public List<Integer> getHandBets() { return handBets; }
+
+    public int getCurrentBet() {
+        if (currentHandIndex < handBets.size()) {
+            return handBets.get(currentHandIndex);
+        }
+        return handBets.get(0);
+    }
 }

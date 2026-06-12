@@ -45,7 +45,7 @@ public class RegisterServlet extends HttpServlet {
             User newUser = new User(newId, usernameInput, passwordInput);
 
 
-            newUser.setMoney("1000");
+            newUser.setBalance(1000);
 
 
             userList.add(newUser);

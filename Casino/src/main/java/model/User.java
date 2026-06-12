@@ -10,26 +10,35 @@ public class User implements Serializable {
     private int id;
     private String username;
     private String password;
-    private String money;
-
-    public String getMoney() {
-        return money;
-    }
-
-    public void setMoney(String money) {
-        this.money = money;
-    }
-
-    public User() {
-    }
+    private int balance;
 
 
     public User(int id, String username, String password) {
         this.id = id;
         this.username = username;
         this.password = password;
+        this.balance = 1000;
     }
 
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
+    }
+
+    public void addBalance(int balance) {
+        this.balance += balance;
+    }
+
+    public void deductBalance(int balance) {
+        this.balance -= balance;
+    }
+
+    public User() {
+    }
 
     public int getId() {
         return id;
