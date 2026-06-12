@@ -137,7 +137,7 @@
                         String centerSymbol = "❓";
                         String bottomSymbol = "❓";
                         
-                        // Wenn schon einmal gedreht wurde, zeige in der Mitte das letzte Ergebnis
+
                         if(slot != null && slot.getCurrentReels() != null && slot.getCurrentReels().size() > i) {
                             topSymbol = allSymbols[rand.nextInt(allSymbols.length)];
                             centerSymbol = slot.getCurrentReels().get(i);
