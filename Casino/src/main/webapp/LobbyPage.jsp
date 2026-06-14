@@ -20,12 +20,12 @@
         h1 { color: #fcc23d; font-size: 2.5rem; margin-bottom: 0.2rem; }
         h2 { color: #fff; font-size: 1.5rem; margin-top: 0; font-weight: 300; margin-bottom: 2rem; }
         
-        .game-link { display: block; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; margin: 15px 0; border: 1px solid #4d5a60; color: white; text-decoration: none; font-size: 1.5rem; font-weight: bold; transition: 0.3s; }
-        .game-link:hover { background: rgba(252, 194, 61, 0.2); border-color: #fcc23d; transform: translateY(-3px); }
+        .gameLink { display: block; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; margin: 15px 0; border: 1px solid #4d5a60; color: white; text-decoration: none; font-size: 1.5rem; font-weight: bold; transition: 0.3s; }
+        .gameLink:hover { background: rgba(252, 194, 61, 0.2); border-color: #fcc23d; transform: translateY(-3px); }
         
-        .action-container { margin-top: 2rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        .logout-btn { display: inline-block; padding: 10px 20px; color: #fcc23d; text-decoration: none; border: 1px solid #fcc23d; border-radius: 8px; transition: 0.3s; }
-        .logout-btn:hover { background: #fcc23d; color: #0f171c; }
+        .actionContainer { margin-top: 2rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .logoutBtn { display: inline-block; padding: 10px 20px; color: #fcc23d; text-decoration: none; border: 1px solid #fcc23d; border-radius: 8px; transition: 0.3s; }
+        .logoutBtn:hover { background: #fcc23d; color: #0f171c; }
     </style>
 </head>
 <body>
@@ -33,14 +33,14 @@
         <h1>Willkommen, <%= user.getUsername() %>!</h1>
         <h2>Dein Guthaben: <strong style="color: #4CAF50;"><%= user.getBalance() %> Chips</strong></h2>
 
-        <a href="BlackjackPage.jsp" class="game-link">🃏 Blackjack</a>
-        <a href="SlotPage.jsp" class="game-link">🎰 Slotmachine</a>
+        <a href="BlackjackPage.jsp" class="gameLink">🃏 Blackjack</a>
+        <a href="SlotPage.jsp" class="gameLink">🎰 Slotmachine</a>
 
-        <div class="action-container">
+        <div class="actionContainer">
             <% if ("admin".equals(user.getUsername())) { %>
-                <a href="AdminPage.jsp" class="logout-btn" style="border-color: #d32f2f; color: #d32f2f;">Nutzerverwaltung</a>
+                <a href="AdminPage.jsp" class="logoutBtn" style="border-color: #d32f2f; color: #d32f2f;">Nutzerverwaltung</a>
             <% } %>
-            <a href="LogoutServlet" class="logout-btn">Abmelden</a>
+            <a href="LogoutServlet" class="logoutBtn">Abmelden</a>
         </div>
     </div>
 </body>
