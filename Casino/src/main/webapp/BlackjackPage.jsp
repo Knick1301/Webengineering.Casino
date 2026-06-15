@@ -43,20 +43,32 @@
     <meta charset="UTF-8" />
     <title>Casino - Blackjack</title>
     <style>
-        body { background-image: url('images/blackjackbackground.jpeg');             background-size: 100%; 
+        body { 
+            background-image: url('images/blackjackbackground.jpeg'); 
+            background-size: 100%; 
             background-position: center;
-            background-repeat: no-repeat; color: white; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
+            background-repeat: no-repeat; 
+            color: white; 
+            font-family: system-ui, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
         .container { 
             background: #272e33;
             padding: 2rem;
-            width:100%;
+            width: 100%;
             padding-top: 0px;
             border-radius: 24px; 
             backdrop-filter: blur(10px); 
             border: 1px solid rgba(252, 194, 61, 0.3); 
             text-align: center; 
             max-width: 1000px;
-            margin-top: 2rem; 
+            box-sizing: border-box;
+            margin: 2rem 0;
         }
         h1 { color: #fcc23d; font-size: 2.5rem; margin-bottom: 0.2rem; }
         h2 { color: #fff; font-size: 1.5rem; margin-top: 0; font-weight: 300; }
@@ -169,43 +181,46 @@
                 
                 <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 20px 0;">
 
-                <% 
-                List<List<Card>> hands = game.getPlayerHands();
-                for (int i = 0; i < hands.size(); i++) { 
-                    boolean isActive = (!game.isGameOver() && i == game.getCurrentHandIndex());
-                    List<Card> currentHand = hands.get(i);
-                %>
-                    <h3 style="<%= isActive ? "color: #fcc23d; margin-bottom: 5px;" : "color: #fff; margin-bottom: 5px;" %>">
-                        <%= hands.size() > 1 ? "Hand " + (i + 1) : "Deine Karten" %> 
-                        <%= isActive ? "(Am Zug)" : "" %>
-                    </h3>
-                    
-                    <div class="hand">
-                        <% for (int j = 0; j < currentHand.size(); j++) { 
-                            renderedPlayerCards++;
-                            boolean isNewCard = (renderedPlayerCards > prevPlayerCount);
-                            double delay = isNewCard ? (renderedPlayerCards - prevPlayerCount) * 0.2 : 0;
+                <div style="display: flex; flex-direction: row; justify-content: center; gap: 40px; flex-wrap: wrap; width: 100%;">
+                    <% 
+                    List<List<Card>> hands = game.getPlayerHands();
+                    for (int i = 0; i < hands.size(); i++) { 
+                        boolean isActive = (!game.isGameOver() && i == game.getCurrentHandIndex());
+                        List<Card> currentHand = hands.get(i);
+                    %>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <h3 style="<%= isActive ? "color: #fcc23d; margin-bottom: 5px;" : "color: #fff; margin-bottom: 5px;" %>">
+                                <%= hands.size() > 1 ? "Hand " + (i + 1) : "Deine Karten" %> 
+                                <%= isActive ? "(Am Zug)" : "" %>
+                            </h3>
                             
-                            Card card = currentHand.get(j);
-                            String suitSymbol = "";
-                            String colorClass = "";
-                            switch(card.getSuit()) {
-                                case "Hearts": suitSymbol = "♥"; colorClass = "red"; break;
-                                case "Diamonds": suitSymbol = "♦"; colorClass = "red"; break;
-                                case "Clubs": suitSymbol = "♣"; break;
-                                case "Spades": suitSymbol = "♠"; break;
-                            }
-                        %>
-                            <div class="card <%= colorClass %> <%= isNewCard ? "animateIn" : "" %>" style="animation-delay: <%= delay %>s;">
-                                <span style="font-size: 0.8rem;"><%= card.getRank() %></span>
-                                <span style="font-size: 1.2rem;"><%= suitSymbol %></span>
+                            <div class="hand">
+                                <% for (int j = 0; j < currentHand.size(); j++) { 
+                                    renderedPlayerCards++;
+                                    boolean isNewCard = (renderedPlayerCards > prevPlayerCount);
+                                    double delay = isNewCard ? (renderedPlayerCards - prevPlayerCount) * 0.2 : 0;
+                                    
+                                    Card card = currentHand.get(j);
+                                    String suitSymbol = "";
+                                    String colorClass = "";
+                                    switch(card.getSuit()) {
+                                        case "Hearts": suitSymbol = "♥"; colorClass = "red"; break;
+                                        case "Diamonds": suitSymbol = "♦"; colorClass = "red"; break;
+                                        case "Clubs": suitSymbol = "♣"; break;
+                                        case "Spades": suitSymbol = "♠"; break;
+                                    }
+                                %>
+                                    <div class="card <%= colorClass %> <%= isNewCard ? "animateIn" : "" %>" style="animation-delay: <%= delay %>s;">
+                                        <span style="font-size: 0.8rem;"><%= card.getRank() %></span>
+                                        <span style="font-size: 1.2rem;"><%= suitSymbol %></span>
+                                    </div>
+                                <% } %>
                             </div>
-                        <% } %>
-                    </div>
-                    
-                    <p style="margin-top: 0;"> <strong>Score: </strong> <strong style="color: #fcc23d;"><%= game.calculateScore(currentHand) %></strong></p>
-                    
-                <% } %>
+                            
+                            <p style="margin-top: 0;"> <strong>Score: </strong> <strong style="color: #fcc23d;"><%= game.calculateScore(currentHand) %></strong></p>
+                        </div>
+                    <% } %>
+                </div>
             </div>
 
             <% if (game.isGameOver()) { %>
@@ -242,12 +257,12 @@
             </div>
             
         <% } else { %>
-            <div class="controlsBox" style="margin-top: 40px;">
+            <div class="controlsBox" style="margin-top: 20px; max-width: 400px; margin-left: auto; margin-right: auto; width: 100%; box-sizing: border-box;">
                 <form action="BlackjackServlet" method="POST" style="display: flex; justify-content: center; align-items: center; flex-direction: column; margin: 0;">
                     <label style="margin-bottom: 15px; font-weight: bold; font-size: 1.2rem;">Dein Einsatz:</label>
-                    <div style="display: flex;">
+                    <div style="display: flex; justify-content: center; width: 100%;">
                         <input type="number" name="betAmount" class="betInput" min="1" max="<%= user.getBalance() %>" value="50" required>
-                        <button type="submit" class="actionBtn" name="action" value="start" style="background: #fcc23d; color: #0f171c;">Blackjack starten</button>
+                        <button type="submit" class="actionBtn" name="action" value="start" style="background: #fcc23d; color: #0f171c; margin: 0;">Blackjack starten</button>
                     </div>
                 </form>
             </div>
