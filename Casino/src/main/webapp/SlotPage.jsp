@@ -6,15 +6,15 @@
     <c:redirect url="LoginPage.html" />
 </c:if>
 
-<%-- Session-Flag auslesen, lokal speichern und danach aufräumen, um Endlos-Animationen zu verhindern --%>
+
 <c:set var="isSpinning" value="${not empty sessionScope.justSpun and sessionScope.justSpun}" scope="page" />
 <c:remove var="justSpun" scope="session" />
 
-<%-- Definition der Symbole für die Pseudo-Zufalls-Mathematik --%>
+
 <c:set var="uniqueSymbols" value="🍒,🍋,🍊,🔔,💎,7️⃣,🍉,🍇,⭐,🍀" />
 <c:set var="symbols" value="${fn:split(uniqueSymbols, ',')}" />
 
-<%-- Eine künstliche Kette aus 27 Symbolen für den "Dreh-Effekt" der CSS-Animation --%>
+
 <c:set var="fillerString" value="🍒,🍋,🍊,🔔,💎,7️⃣,🍉,🍇,⭐,🍀,🍋,🍉,💎,🍒,🔔,⭐,🍇,🍀,7️⃣,🍊,🍉,🍒,💎,⭐,🍋,🔔,🍇" />
 <c:set var="fillers" value="${fn:split(fillerString, ',')}" />
 
@@ -42,32 +42,30 @@
                     <c:when test="${isSpinning and not empty sessionScope.slotMachine.currentReels}">
                         <c:forEach var="finalSymbol" items="${sessionScope.slotMachine.currentReels}" varStatus="status">
                             <c:set var="duration" value="${1.5 + (status.index * 1.0)}" />
-                            
-                            <%-- Erzeugt einen mathematischen Pseudo-Zufall basierend auf der Walzennummer (0 bis 3) --%>
+
                             <c:set var="topIndex" value="${(status.index * 3 + 5) % 10}" />
                             <c:set var="bottomIndex" value="${(status.index * 7 + 2) % 10}" />
                             
                             <div class="reelContainer">
                                 <div class="strip" style="animation: spinReel ${duration}s cubic-bezier(0.15, 0.9, 0.25, 1) forwards;">
-                                    <%-- Die Füller-Symbole durchlaufen, damit das CSS Platz zum Scrollen hat --%>
+
                                     <c:forEach var="sym" items="${fillers}">
                                         <div class="symbol">${sym}</div>
                                     </c:forEach>
                                     
-                                    <%-- Das pseudo-zufällige Symbol für OBEN --%>
+
                                     <div class="symbol">${symbols[topIndex]}</div>
                                     
-                                    <%-- Das tatsächliche Gewinnsymbol, bei dem die Walze stoppt (MITTE) --%>
+
                                     <div class="symbol">${finalSymbol}</div>
                                     
-                                    <%-- Das pseudo-zufällige Symbol für UNTEN --%>
                                     <div class="symbol">${symbols[bottomIndex]}</div>
                                 </div>
                             </div>
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
-                        <%-- Anzeige nach dem Neuladen der Seite (wenn nicht mehr gedreht wird) --%>
+
                         <c:forEach var="reel" items="${sessionScope.slotMachine.currentReels}" varStatus="status">
                             <c:set var="topIndex" value="${(status.index * 3 + 5) % 10}" />
                             <c:set var="bottomIndex" value="${(status.index * 7 + 2) % 10}" />
@@ -81,7 +79,7 @@
                             </div>
                         </c:forEach>
                         
-                        <%-- Fallback, falls das Spiel komplett neu gestartet wird und noch keine Walzen existieren --%>
+
                         <c:if test="${empty sessionScope.slotMachine.currentReels}">
                             <c:forEach begin="0" end="3">
                                 <div class="reelContainer">
