@@ -1,24 +1,22 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="model.User" %>
-<%@ page import="slot.SlotMachine" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Random" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
-<% 
-    User user = (User) session.getAttribute("currentUser");
-    if (user == null) { 
-        response.sendRedirect("LoginPage.html"); 
-        return; 
-    } 
-    SlotMachine slot = (SlotMachine) session.getAttribute("slotMachine");
-    
-    Boolean justSpunObj = (Boolean) session.getAttribute("justSpun");
-    boolean hasJustSpun = (justSpunObj != null && justSpunObj);
-    session.removeAttribute("justSpun");
-    
-    String[] allSymbols = {"🍒", "🍋", "🍊", "🔔", "💎", "7️⃣", "🍉", "🍇", "⭐", "🍀"};
-    Random rand = new Random();
-%>
+<c:if test="${empty sessionScope.currentUser}">
+    <c:redirect url="LoginPage.html" />
+</c:if>
+
+<%-- Session-Flag auslesen, lokal speichern und danach aufräumen, um Endlos-Animationen zu verhindern --%>
+<c:set var="isSpinning" value="${not empty sessionScope.justSpun and sessionScope.justSpun}" scope="page" />
+<c:remove var="justSpun" scope="session" />
+
+<%-- Definition der Symbole für die Pseudo-Zufalls-Mathematik --%>
+<c:set var="uniqueSymbols" value="🍒,🍋,🍊,🔔,💎,7️⃣,🍉,🍇,⭐,🍀" />
+<c:set var="symbols" value="${fn:split(uniqueSymbols, ',')}" />
+
+<%-- Eine künstliche Kette aus 27 Symbolen für den "Dreh-Effekt" der CSS-Animation --%>
+<c:set var="fillerString" value="🍒,🍋,🍊,🔔,💎,7️⃣,🍉,🍇,⭐,🍀,🍋,🍉,💎,🍒,🔔,⭐,🍇,🍀,7️⃣,🍊,🍉,🍒,💎,⭐,🍋,🔔,🍇" />
+<c:set var="fillers" value="${fn:split(fillerString, ',')}" />
 
 <!doctype html>
 <html lang="de">
@@ -32,72 +30,97 @@
         <h1>Slotmaschine</h1>
         <h2>Guthaben: 
             <strong>
-                <span class="textGreen"><%= user.getBalance() %> Chips</span>
+                <span class="textGreen">${sessionScope.currentUser.balance} Chips</span>
             </strong>
         </h2>
 
         <div class="gameBox">
             <div class="slotMachine">
                 <div class="winLine"></div>
-                <% 
-                if (hasJustSpun && slot.getCurrentReels() != null && !slot.getCurrentReels().isEmpty()) { 
-                    List<String> reels = slot.getCurrentReels();
-                    
-                    for (int i = 0; i < reels.size(); i++) {
-                        String finalSymbol = reels.get(i);
-                        double duration = 1.5 + (i * 1.0);
-                %>
-                        <div class="reelContainer">
-                            <div class="strip" style="animation: spinReel <%= duration %>s cubic-bezier(0.15, 0.9, 0.25, 1) forwards;">
-                                <% for(int k = 0; k < 28; k++) { %>
-                                    <div class="symbol"><%= allSymbols[rand.nextInt(allSymbols.length)] %></div>
-                                <% } %>
-                                <div class="symbol"><%= finalSymbol %></div>
-                                <div class="symbol"><%= allSymbols[rand.nextInt(allSymbols.length)] %></div>
+                
+                <c:choose>
+                    <c:when test="${isSpinning and not empty sessionScope.slotMachine.currentReels}">
+                        <c:forEach var="finalSymbol" items="${sessionScope.slotMachine.currentReels}" varStatus="status">
+                            <c:set var="duration" value="${1.5 + (status.index * 1.0)}" />
+                            
+                            <%-- Erzeugt einen mathematischen Pseudo-Zufall basierend auf der Walzennummer (0 bis 3) --%>
+                            <c:set var="topIndex" value="${(status.index * 3 + 5) % 10}" />
+                            <c:set var="bottomIndex" value="${(status.index * 7 + 2) % 10}" />
+                            
+                            <div class="reelContainer">
+                                <div class="strip" style="animation: spinReel ${duration}s cubic-bezier(0.15, 0.9, 0.25, 1) forwards;">
+                                    <%-- Die Füller-Symbole durchlaufen, damit das CSS Platz zum Scrollen hat --%>
+                                    <c:forEach var="sym" items="${fillers}">
+                                        <div class="symbol">${sym}</div>
+                                    </c:forEach>
+                                    
+                                    <%-- Das pseudo-zufällige Symbol für OBEN --%>
+                                    <div class="symbol">${symbols[topIndex]}</div>
+                                    
+                                    <%-- Das tatsächliche Gewinnsymbol, bei dem die Walze stoppt (MITTE) --%>
+                                    <div class="symbol">${finalSymbol}</div>
+                                    
+                                    <%-- Das pseudo-zufällige Symbol für UNTEN --%>
+                                    <div class="symbol">${symbols[bottomIndex]}</div>
+                                </div>
                             </div>
-                        </div>
-                <%  } 
-                } else { %>
-                    <% for(int i = 0; i < 4; i++) { 
-
-                        String topSymbol = "❓";
-                        String centerSymbol = "❓";
-                        String bottomSymbol = "❓";
+                        </c:forEach>
+                    </c:when>
+                    <c:otherwise>
+                        <%-- Anzeige nach dem Neuladen der Seite (wenn nicht mehr gedreht wird) --%>
+                        <c:forEach var="reel" items="${sessionScope.slotMachine.currentReels}" varStatus="status">
+                            <c:set var="topIndex" value="${(status.index * 3 + 5) % 10}" />
+                            <c:set var="bottomIndex" value="${(status.index * 7 + 2) % 10}" />
+                            
+                            <div class="reelContainer">
+                                <div class="strip">
+                                    <div class="symbol">${not empty reel ? symbols[topIndex] : '❓'}</div>
+                                    <div class="symbol">${not empty reel ? reel : '❓'}</div>
+                                    <div class="symbol">${not empty reel ? symbols[bottomIndex] : '❓'}</div>
+                                </div>
+                            </div>
+                        </c:forEach>
                         
-
-                        if(slot != null && slot.getCurrentReels() != null && slot.getCurrentReels().size() > i) {
-                            topSymbol = allSymbols[rand.nextInt(allSymbols.length)];
-                            centerSymbol = slot.getCurrentReels().get(i);
-                            bottomSymbol = allSymbols[rand.nextInt(allSymbols.length)];
-                        }
-                    %>
-                        <div class="reelContainer">
-                            <div class="strip">
-                                <div class="symbol"><%= topSymbol %></div>
-                                <div class="symbol"><%= centerSymbol %></div>
-                                <div class="symbol"><%= bottomSymbol %></div>
-                            </div>
-                        </div>
-                    <% } %>
-                <% } %>
+                        <%-- Fallback, falls das Spiel komplett neu gestartet wird und noch keine Walzen existieren --%>
+                        <c:if test="${empty sessionScope.slotMachine.currentReels}">
+                            <c:forEach begin="0" end="3">
+                                <div class="reelContainer">
+                                    <div class="strip">
+                                        <div class="symbol">❓</div>
+                                        <div class="symbol">❓</div>
+                                        <div class="symbol">❓</div>
+                                    </div>
+                                </div>
+                            </c:forEach>
+                        </c:if>
+                    </c:otherwise>
+                </c:choose>
             </div>
 
-            <div class="resultBox" <%= hasJustSpun ? "style='opacity: 0; animation: fadeInResult 0.3s ease forwards 4.5s;'" : "" %>>
-                <% if (slot != null && slot.getPayout() >= 0) { %>
-                    <p class="resultMsg"><%= slot.getResultMessage() %></p>
-                    <% if (slot.getPayout() > 0) { %>
-                        <p class="payoutMsg">+ <%= slot.getPayout() %> Chips gewonnen!</p>
-                    <% } else { %>
-                        <p class="resultChips">- <%= slot.getBetAmount() %> Chips</p>
-                    <% } %>
-                <% } else { %>
-                    <p class="slotParagraph">Wähle deinen Einsatz und drehe die Walzen!</p>
-                <% } %>
+            <div class="resultBox" ${isSpinning ? "style='opacity: 0; animation: fadeInResult 0.3s ease forwards 4.5s;'" : ""}>
+                <c:choose>
+                    <c:when test="${not empty sessionScope.slotMachine and sessionScope.slotMachine.payout >= 0}">
+                        <p class="resultMsg">${sessionScope.slotMachine.resultMessage}</p>
+                        <c:choose>
+                            <c:when test="${sessionScope.slotMachine.payout > 0}">
+                                <p class="payoutMsg">+ ${sessionScope.slotMachine.payout} Chips gewonnen!</p>
+                            </c:when>
+                            <c:otherwise>
+                                <p class="resultChips">- ${sessionScope.slotMachine.betAmount} Chips</p>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:when>
+                    <c:otherwise>
+                        <p class="slotParagraph">Wähle deinen Einsatz und drehe die Walzen!</p>
+                    </c:otherwise>
+                </c:choose>
             </div>
 
-            <form action="SlotServlet" method="POST" class="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+            <form action="SlotServlet" method="POST" style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
                 <label for="betAmount" class="labelBetAmount">Einsatz:</label>
-                <input type="number" id="betAmount" name="betAmount" class="betInput" min="1" max="<%= user.getBalance() %>" value="<%= slot != null ? slot.getBetAmount() : 10 %>" required>
+                <input type="number" id="betAmount" name="betAmount" class="betInput" min="1" 
+                       max="${sessionScope.currentUser.balance}" 
+                       value="${not empty sessionScope.slotMachine ? sessionScope.slotMachine.betAmount : 10}" required>
                 <button type="submit" id="spinBtn" class="actionBtn">SPIN 🎰</button>
             </form>
         </div>
@@ -107,10 +130,10 @@
             <a href="LogoutServlet" class="logoutBtn">Abmelden</a>
         </div>
     </div>
-
+    
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const isSpinning = <%= hasJustSpun %>;
+            const isSpinning = ${isSpinning};
             const spinBtn = document.getElementById("spinBtn");
             
             if (isSpinning && spinBtn) {

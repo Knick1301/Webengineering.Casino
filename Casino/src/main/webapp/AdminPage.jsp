@@ -1,23 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="model.User" %>
-<%@ page import="java.util.List" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<%
-    User currentUser = (User) session.getAttribute("currentUser");
-    
-    if (currentUser == null) {
-        response.sendRedirect("LoginPage.html");
-        return;
-    }
+<c:if test="${empty sessionScope.currentUser}">
+    <c:redirect url="LoginPage.html" />
+</c:if>
 
-    if (!"admin".equals(currentUser.getUsername())) {
-        response.sendRedirect("Lobby.jsp");
-        return;
-    }
-
-    @SuppressWarnings("unchecked")
-    List<User> userList = (List<User>) application.getAttribute("globalUserList");
-%>
+<c:if test="${sessionScope.currentUser.username != 'admin'}">
+    <c:redirect url="LobbyPage.jsp" />
+</c:if>
 
 <!doctype html>
 <html lang="de">
@@ -29,32 +19,35 @@
 <body class="admin">
     <div class="container">
         <h1>Manager Dashboard</h1>
-        <p>Hier kannst du Spieler aus dem Casino verweisen.</p>
+        <p>Hier kannst du Spieler aus dem Casino verwalten.</p>
 
         <ul class="userList">
-            <% if (userList != null) {
-                for (User u : userList) { %>
+            <c:if test="${not empty applicationScope.globalUserList}">
+                <c:forEach var="u" items="${applicationScope.globalUserList}">
                     <li class="userItem">
                         <div class="userInfo">
-                            <span class="userName"><%= u.getUsername() %></span>
+                            <span class="userName">${u.username}</span>
                             <form action="UpdateBalanceServlet" method="POST" >
-                                <input type="hidden" name="username" value="<%= u.getUsername() %>">
-                                <input type="number" name="newBalance" value="<%= u.getBalance() %>" class="updateBalance">
+                                <input type="hidden" name="username" value="${u.username}">
+                                <input type="number" name="newBalance" value="${u.balance}" class="updateBalance">
                                 <button type="submit" class="updateBalanceBtn">OK</button>
                             </form>
                         </div>
                         
-                        <% if (!u.getUsername().equals(currentUser.getUsername())) { %>
-                            <form action="DeleteUserServlet" method="POST" class="deleteUserForm">
-                                <input type="hidden" name="usernameToDelete" value="<%= u.getUsername() %>">
-                                <button type="submit" class="deleteBtn">Löschen</button>
-                            </form>
-                        <% } else { %>
-                            <span class="deleteUserSpan">(Du)</span>
-                        <% } %>
+                        <c:choose>
+                            <c:when test="${u.username != sessionScope.currentUser.username}">
+                                <form action="DeleteUserServlet" method="POST" class="deleteUserForm">
+                                    <input type="hidden" name="usernameToDelete" value="${u.username}">
+                                    <button type="submit" class="deleteBtn">Löschen</button>
+                                </form>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="deleteUserSpan">(Du)</span>
+                            </c:otherwise>
+                        </c:choose>
                     </li>
-            <%  }
-            } %>
+                </c:forEach>
+            </c:if>
         </ul>
 
         <a href="LobbyPage.jsp" class="backBtn">Zurück zur Lobby</a>

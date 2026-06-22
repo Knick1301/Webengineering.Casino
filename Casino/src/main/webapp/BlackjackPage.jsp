@@ -1,42 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="model.User" %>
-<%@ page import="blackjack.BlackjackGame" %>
-<%@ page import="blackjack.Card" %>
-<%@ page import="java.util.List" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
-<%
-    User user = (User) session.getAttribute("currentUser");
-    if (user == null) {
-        response.sendRedirect("LoginPage.html");
-        return;
-    }
-    BlackjackGame game = (BlackjackGame) session.getAttribute("blackjackGame");
-
-    Integer prevPlayerCount = (Integer) session.getAttribute("prevPlayerCount");
-    Integer prevDealerCount = (Integer) session.getAttribute("prevDealerCount");
-    Boolean prevGameOver = (Boolean) session.getAttribute("prevGameOver");
-
-    if (prevGameOver == null) prevGameOver = false;
-
-    int currentTotalPlayerCards = 0;
-    int currentTotalDealerCards = 0;
-
-    if (game != null) {
-        for (List<Card> h : game.getPlayerHands()) { currentTotalPlayerCards += h.size(); }
-        currentTotalDealerCards = game.getDealerHand().size();
-
-        if (prevPlayerCount == null || currentTotalPlayerCards < prevPlayerCount
-                || (currentTotalPlayerCards == 2 && game.getPlayerHands().size() == 1 && !game.isGameOver())) {
-            prevPlayerCount = 0;
-            prevDealerCount = 0;
-            prevGameOver = false;
-        }
-    }
-
-    boolean gameJustEnded = game != null && game.isGameOver() && !prevGameOver;
-    int renderedPlayerCards = 0;
-    int renderedDealerCards = 0;
-%>
+<c:if test="${empty sessionScope.currentUser}">
+    <c:redirect url="LoginPage.html" />
+</c:if>
 
 <!doctype html>
 <html lang="de">
@@ -47,160 +15,132 @@
 </head>
 <body class="blackjack">
 <div class="container">
-    <h1>Willkommen, <%= user.getUsername() %>!</h1>
+    <h1>Willkommen, ${sessionScope.currentUser.username}!</h1>
     <h2>
         Guthaben:
-        <strong class="textGreen"><%= user.getBalance() %> Chips</strong>
+        <strong class="textGreen">${sessionScope.currentUser.balance} Chips</strong>
     </h2>
 
-    <% if (game != null) { %>
+    <c:if test="${not empty sessionScope.blackjackGame}">
     <div class="gameBox">
         <h3 class="dealerTitle">Dealer</h3>
 
         <div class="hand">
-            <%
-                List<Card> dHand = game.getDealerHand();
-                for (int i = 0; i < dHand.size(); i++) {
-                    renderedDealerCards++;
-                    boolean isHoleCardFlipping = gameJustEnded && i == 1;
-                    boolean isNewlyDrawn = renderedDealerCards > prevDealerCount;
-                    boolean isNewCard = isHoleCardFlipping || isNewlyDrawn;
-
-                    double delay = 0;
-                    if (isHoleCardFlipping) { delay = 0; }
-                    else if (isNewlyDrawn) { delay = (renderedDealerCards - prevDealerCount) * 0.2; }
-
-                    if (!game.isGameOver() && i == 1) {
-            %>
-            <div class="card hidden <%= isNewCard ? "animateIn" : "" %>"
-                 style="animation-delay: <%= delay %>s;">?</div>
-            <%
-            } else {
-                Card card = dHand.get(i);
-                String suitSymbol = "";
-                String colorClass = "";
-                switch (card.getSuit()) {
-                    case "Hearts": suitSymbol = "♥"; colorClass = "red"; break;
-                    case "Diamonds": suitSymbol = "♦"; colorClass = "red"; break;
-                    case "Clubs": suitSymbol = "♣"; break;
-                    case "Spades": suitSymbol = "♠"; break;
-                }
-            %>
-            <div class="card <%= colorClass %> <%= isNewCard ? "animateIn" : "" %>"
-                 style="animation-delay: <%= delay %>s;">
-                <span class="cardRank"><%= card.getRank() %></span>
-                <span class="cardSuit"><%= suitSymbol %></span>
-            </div>
-            <%
-                    }
-                }
-            %>
+            <c:forEach var="card" items="${sessionScope.blackjackGame.dealerHand}" varStatus="loop">
+                <c:choose>
+                    <c:when test="${not sessionScope.blackjackGame.gameOver and loop.index == 1}">
+                        <div class="card hidden">?</div>
+                    </c:when>
+                    <c:otherwise>
+                        <c:set var="colorClass" value="${(card.suit == 'Hearts' or card.suit == 'Diamonds') ? 'red' : ''}" />
+                        <c:set var="suitSymbol" value="" />
+                        <c:choose>
+                            <c:when test="${card.suit == 'Hearts'}"><c:set var="suitSymbol" value="♥" /></c:when>
+                            <c:when test="${card.suit == 'Diamonds'}"><c:set var="suitSymbol" value="♦" /></c:when>
+                            <c:when test="${card.suit == 'Clubs'}"><c:set var="suitSymbol" value="♣" /></c:when>
+                            <c:when test="${card.suit == 'Spades'}"><c:set var="suitSymbol" value="♠" /></c:when>
+                        </c:choose>
+                        
+                        <div class="card ${colorClass}">
+                            <span class="cardRank">${card.rank}</span>
+                            <span class="cardSuit">${suitSymbol}</span>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </c:forEach>
         </div>
 
         <hr class="divider">
 
         <div class="handsRow">
-            <%
-                List<List<Card>> hands = game.getPlayerHands();
-                for (int i = 0; i < hands.size(); i++) {
-                    boolean isActive = (!game.isGameOver() && i == game.getCurrentHandIndex());
-                    List<Card> currentHand = hands.get(i);
-            %>
-            <div class="handCol">
-                <h3 class="playerTitle <%= isActive ? "isActive" : "" %>">
-                    <%= hands.size() > 1 ? "Hand " + (i + 1) : "Deine Karten" %>
-                    <%= isActive ? "(Am Zug)" : "" %>
-                </h3>
+            <c:forEach var="currentHand" items="${sessionScope.blackjackGame.playerHands}" varStatus="handLoop">
+                <c:set var="isActive" value="${not sessionScope.blackjackGame.gameOver and handLoop.index == sessionScope.blackjackGame.currentHandIndex}" />
+                
+                <div class="handCol">
+                    <h3 class="playerTitle ${isActive ? 'isActive' : ''}">
+                        ${fn:length(sessionScope.blackjackGame.playerHands) > 1 ? 'Hand ' += (handLoop.index + 1) : 'Deine Karten'}
+                        ${isActive ? '(Am Zug)' : ''}
+                    </h3>
 
-                <div class="hand">
-                    <%
-                        for (int j = 0; j < currentHand.size(); j++) {
-                            renderedPlayerCards++;
-                            boolean isNewCard = (renderedPlayerCards > prevPlayerCount);
-                            double delay = isNewCard ? (renderedPlayerCards - prevPlayerCount) * 0.2 : 0;
+                    <div class="hand">
+                        <c:forEach var="card" items="${currentHand}">
+                            <c:set var="colorClass" value="${(card.suit == 'Hearts' or card.suit == 'Diamonds') ? 'red' : ''}" />
+                            <c:set var="suitSymbol" value="" />
+                            <c:choose>
+                                <c:when test="${card.suit == 'Hearts'}"><c:set var="suitSymbol" value="♥" /></c:when>
+                                <c:when test="${card.suit == 'Diamonds'}"><c:set var="suitSymbol" value="♦" /></c:when>
+                                <c:when test="${card.suit == 'Clubs'}"><c:set var="suitSymbol" value="♣" /></c:when>
+                                <c:when test="${card.suit == 'Spades'}"><c:set var="suitSymbol" value="♠" /></c:when>
+                            </c:choose>
 
-                            Card card = currentHand.get(j);
-                            String suitSymbol = "";
-                            String colorClass = "";
-                            switch (card.getSuit()) {
-                                case "Hearts": suitSymbol = "♥"; colorClass = "red"; break;
-                                case "Diamonds": suitSymbol = "♦"; colorClass = "red"; break;
-                                case "Clubs": suitSymbol = "♣"; break;
-                                case "Spades": suitSymbol = "♠"; break;
-                            }
-                    %>
-                    <div class="card <%= colorClass %> <%= isNewCard ? "animateIn" : "" %>"
-                         style="animation-delay: <%= delay %>s;">
-                        <span class="cardRank"><%= card.getRank() %></span>
-                        <span class="cardSuit"><%= suitSymbol %></span>
+                            <div class="card ${colorClass}">
+                                <span class="cardRank">${card.rank}</span>
+                                <span class="cardSuit">${suitSymbol}</span>
+                            </div>
+                        </c:forEach>
                     </div>
-                    <%
-                        }
-                    %>
-                </div>
 
-                <p class="scoreLine">
-                    <strong>Score: </strong>
-                    <strong class="scoreValue"><%= game.calculateScore(currentHand) %></strong>
-                </p>
-            </div>
-            <%
-                }
-            %>
+                    <p class="scoreLine">
+                        <strong>Score: </strong>
+                        <strong class="scoreValue">${sessionScope.blackjackGame.calculateScore(currentHand)}</strong>
+                    </p>
+                </div>
+            </c:forEach>
         </div>
     </div>
 
-    <% if (game.isGameOver()) { %>
-    <div class="gameOverBox">
-        <% for (String result : game.getResults()) { %>
-        <p class="gameOverMsg"><%= result %></p>
-        <% } %>
-    </div>
-    <% } %>
+    <c:if test="${sessionScope.blackjackGame.gameOver}">
+        <div class="gameOverBox">
+            <c:forEach var="result" items="${sessionScope.blackjackGame.results}">
+                <p class="gameOverMsg">${result}</p>
+            </c:forEach>
+        </div>
+    </c:if>
 
     <div class="controlsBox">
         <form action="BlackjackServlet" method="POST" class="formReset">
-            <% if (!game.isGameOver()) {
-                List<Card> currentActiveHand = game.getPlayerHands().get(game.getCurrentHandIndex());
-            %>
-            <p class="currentBetText">
-                Aktueller Einsatz:
-                <strong class="currentBetValue"><%= game.getCurrentBet() %> Chips</strong>
-            </p>
+            <c:choose>
+                <c:when test="${not sessionScope.blackjackGame.gameOver}">
+                    <p class="currentBetText">
+                        Aktueller Einsatz:
+                        <strong class="currentBetValue">${sessionScope.blackjackGame.currentBet} Chips</strong>
+                    </p>
 
-            <button type="submit" class="actionBtn" name="action" value="hit">Karte ziehen</button>
-            <button type="submit" class="actionBtn" name="action" value="stand">Halten</button>
+                    <button type="submit" class="actionBtn" name="action" value="hit">Karte ziehen</button>
+                    <button type="submit" class="actionBtn" name="action" value="stand">Halten</button>
 
-            <% if (currentActiveHand.size() == 2 && user.getBalance() >= game.getCurrentBet()) { %>
-            <button type="submit" class="actionBtn" name="action" value="double">Verdoppeln</button>
-            <% } %>
+                    <c:if test="${fn:length(sessionScope.blackjackGame.playerHands[sessionScope.blackjackGame.currentHandIndex]) == 2 and sessionScope.currentUser.balance >= sessionScope.blackjackGame.currentBet}">
+                        <button type="submit" class="actionBtn" name="action" value="double">Verdoppeln</button>
+                    </c:if>
 
-            <% if (game.canSplit() && user.getBalance() >= game.getCurrentBet()) { %>
-            <button type="submit" class="actionBtn" name="action" value="split">Split</button>
-            <% } %>
+                    <c:if test="${sessionScope.blackjackGame.canSplit() and sessionScope.currentUser.balance >= sessionScope.blackjackGame.currentBet}">
+                        <button type="submit" class="actionBtn" name="action" value="split">Split</button>
+                    </c:if>
+                </c:when>
+                <c:otherwise>
+                    <div class="controlsRow">
+                        <input type="number" name="betAmount" class="betInput"
+                               min="1" max="${sessionScope.currentUser.balance}"
+                               value="${sessionScope.blackjackGame.currentBet}" required>
 
-            <% } else { %>
-            <div class="controlsRow">
-                <input type="number" name="betAmount" class="betInput"
-                       min="1" max="<%= user.getBalance() %>"
-                       value="<%= game.getCurrentBet() %>" required>
-
-                <button type="submit" class="actionBtn btnNewGame" name="action" value="start">
-                    Neues Spiel
-                </button>
-            </div>
-            <% } %>
+                        <button type="submit" class="actionBtn btnNewGame" name="action" value="start">
+                            Neues Spiel
+                        </button>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </form>
     </div>
+    </c:if>
 
-    <% } else { %>
+    <c:if test="${empty sessionScope.blackjackGame}">
     <div class="controlsBox startBox">
         <form action="BlackjackServlet" method="POST" class="startForm">
             <label class="startLabel">Dein Einsatz:</label>
 
             <div class="startRow">
                 <input type="number" name="betAmount" class="betInput"
-                       min="1" max="<%= user.getBalance() %>"
+                       min="1" max="${sessionScope.currentUser.balance}"
                        value="50" required>
 
                 <button type="submit" class="actionBtn btnStart" name="action" value="start">
@@ -209,7 +149,7 @@
             </div>
         </form>
     </div>
-    <% } %>
+    </c:if>
 
     <div class="footerLinks">
         <a href="LobbyPage.jsp" class="logoutBtn noTopMargin">Zurück zur Lobby</a>
@@ -218,11 +158,3 @@
 </div>
 </body>
 </html>
-
-<%
-    if (game != null) {
-        session.setAttribute("prevPlayerCount", currentTotalPlayerCards);
-        session.setAttribute("prevDealerCount", currentTotalDealerCards);
-        session.setAttribute("prevGameOver", game.isGameOver());
-    }
-%>
