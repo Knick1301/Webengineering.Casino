@@ -156,5 +156,7 @@
         <a href="LogoutServlet" class="logoutBtn noTopMargin">Abmelden</a>
     </div>
 </div>
+<jsp:include page="footer.jsp" />
 </body>
+
 </html>

@@ -52,5 +52,6 @@
 
         <a href="LobbyPage.jsp" class="backBtn">Zurück zur Lobby</a>
     </div>
+    <jsp:include page="footer.jsp" />
 </body>
 </html>
